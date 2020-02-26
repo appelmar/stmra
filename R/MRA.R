@@ -37,6 +37,34 @@ quadform=function(B,C.chol,D) {
 }
 
 
+
+
+
+## extract (k,l)th element of each element in a nested list
+l.ex=function(list,k,l) sapply(sapply(list,`[`,k),'[',l)
+# temp=list(list(1,list(2.1,2.2)),list(3,list(4.1,4.2)),list(5,list(6.1,6.2))); temp; l.ex(temp[2:3],2,1)
+
+## cholesky decomposition
+cholesky=function(A) if(length(A)<2 && (length(A)<=1 || A==0)) 0 else
+  t(tryCatch(chol(A),error=function(e) chol(A+1e-2*mean(diag(A)))*diag(nrow(A))) )
+
+
+## calculate inv(C.chol)*A, where C.chol is cholesky factor
+sol=function(C.chol,A)  if(length(A)<=1 | length(C.chol)<=1) 0 else base::forwardsolve(C.chol,A)
+
+## calculate t(A)*B
+tp=function(A,B)  {
+  if(length(A)<=1 | length(B)<=1) 0 else t(A)%*%B
+}
+
+
+
+
+
+
+
+
+
 MRA.fast=function(theta,cov.fun,data,knots,indices,J, pred.locs=NULL) {
 
   pred=(!is.null(pred.locs)) # do prediction if locs are given (o/w return likelihood)

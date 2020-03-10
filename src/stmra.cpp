@@ -96,12 +96,12 @@ double radial_basis_gauss_R1(double x, NumericVector w, double width = double(1)
   // TODO: assert that length(w) == n_knots
   std::vector<double> knots;
   for (uint16_t i=0; i < n_knots; ++i) {
-    knots.push_back(lim0 + i* (lim1-lim0)/(n_knots-1));
+    knots.push_back(lim0 + i* (lim1-lim0)/(n_knots-1)     );
   }
   double sum = 0.0;
   for (uint16_t i=0; i < n_knots; ++i) {
     double r = x - knots[i];
-    double bf = exp(-(pow(width*r,2)));
+      double bf = exp(-(pow(width*r,2)));
     sum += w[i] * bf;
   }
   return sum;

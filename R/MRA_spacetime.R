@@ -36,6 +36,7 @@ stmra_create_model <- function(data, M, r, cov_fun, region_minsize = c(0,0,0)) {
   }
   else if (is.matrix(data)) {
     # TODO: check for existing columns x, y, t, value
+    z = data
     z = z[which(!is.na(z[,"value"])),] # ignore NA values
     domain = c("xmin" = min(z[,"x"],na.rm = TRUE) -0.0001, "xmax" = min(z[,"x"],na.rm = TRUE) + 0.0001,
                "ymin" = min(z[,"y"],na.rm = TRUE) -0.0001, "ymax" = min(z[,"y"],na.rm = TRUE) + 0.0001,
@@ -67,15 +68,14 @@ stmra_create_model <- function(data, M, r, cov_fun, region_minsize = c(0,0,0)) {
 #' @param lower_bounds lower boundaries of parameter values
 #' @param upper_bounds upper boundaries of parameter values
 #' @param ineq_constraints extended matrix with linear inequality constraints (rightmost column is RHS vector of the system)
-#' @param max.iter maximum number of iterations in numerical optimization
-#' @param ftol.abs absolute tolerance in numerical optimization
+#' @param control list to adjust optimization parameters e.g. maximum number of iterations, or tolerance (see Details)
 #' @param optim.method optimization method (1 = BOBYQA from nloptr package, 2 = LL-BFGS-B, 3 = constrOptim from constrOptim package), see details
 #' @param trace logical; print current parameter values and objective function value after each iteration
 #' @details
-#' For optimization method 3 (constrOptim), `max.iter` can be a vector of length two, representing the maximum number of outer and inner iterations
+#' The supported options and ther names in the control argument vary with the used optimization method. Please check the specific method for details.
 #' @return model with estimated covariance function parameters theta
 #' @export
-stmra_estimate <- function(model, theta0, lower_bounds = NULL, upper_bounds = NULL, trace = FALSE, max.iter = NULL, ftol.abs = NULL,
+stmra_estimate <- function(model, theta0, lower_bounds = NULL, upper_bounds = NULL, trace = FALSE, control = list(),
                            optim.method = 1, ineq_constraints = NULL) {
 
 
@@ -109,17 +109,12 @@ stmra_estimate <- function(model, theta0, lower_bounds = NULL, upper_bounds = NU
     if (!is.null(ineq_constraints)) {
       warning("ignoring inequality constraints, use optim.method = 3 if needed.")
     }
-
-    control = list()
-    if (!is.null(max.iter))
-      control$maxeval = max.iter
-    if (!is.null(ftol.abs))
-      control$ftol_abs = ftol.abs
-
     res = nloptr::bobyqa(theta0, f, lower=lower_bounds, upper=upper_bounds, control=control)
   }
   else if (optim.method == 2) {
-
+    if(!requireNamespace("nloptr", quietly = TRUE)) {
+      stop("package nloptr not found; please install first")
+    }
     if (is.null(lower_bounds)) {
       stop("missing lower bounds")
     }
@@ -129,27 +124,11 @@ stmra_estimate <- function(model, theta0, lower_bounds = NULL, upper_bounds = NU
     if (!is.null(ineq_constraints)) {
       warning("ignoring inequality constraints, use optim.method = 3 if needed.")
     }
-
-    control = list()
-    if (!is.null(max.iter))
-      control$maxit = max.iter
-    if (!is.null(ftol.abs))
-      warning("ftol.abs is not supportted for optim.method == 2 and will be ignored")
-
-    res = optim(theta0,fn = f,method = "L-BFGS-B", lower = lower_bounds, upper = upper_bounds, control=control)
+    res = nloptr::lbfgs(theta0, f, lower=lower_bounds, upper=upper_bounds, control=control)
   }
   else if (optim.method == 3) {
     if(!requireNamespace("constrOptim", quietly = TRUE)) {
       stop("package constrOptim not found; please install first")
-    }
-    control = list()
-    outer_iterations = 100
-    if (!is.null(max.iter)) {
-      warning("using max.iter as maximum number of INNER iterations")
-      control$maxit = max.iter
-      if (length(max.iter) > 1) {
-        outer_iterations = max.iter[2]
-      }
     }
 
     if (!is.null(ftol.abs))
@@ -175,8 +154,7 @@ stmra_estimate <- function(model, theta0, lower_bounds = NULL, upper_bounds = NU
       ui = rbind(ui, diag(-1, np))
       ci = c(ci, -upper_bounds) # upper bound is NOT included
     }
-    print(cbind(ui, ci)) # FOR DEBUG
-    res = constrOptim(theta0, f, NULL, ui =ui, ci = ci, control=control, outer.iterations = outer_iterations)
+    res = constrOptim(theta0, f, NULL, ui =ui, ci = ci, control=control)
   }
   else {
     stop("Invalid optimization method")

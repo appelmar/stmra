@@ -17,6 +17,18 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// R3_distances
+NumericMatrix R3_distances(NumericMatrix locA, NumericMatrix locB);
+RcppExport SEXP _stmra_R3_distances(SEXP locASEXP, SEXP locBSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< NumericMatrix >::type locA(locASEXP);
+    Rcpp::traits::input_parameter< NumericMatrix >::type locB(locBSEXP);
+    rcpp_result_gen = Rcpp::wrap(R3_distances(locA, locB));
+    return rcpp_result_gen;
+END_RCPP
+}
 // S2_distances
 NumericMatrix S2_distances(NumericMatrix locA, NumericMatrix locB);
 RcppExport SEXP _stmra_S2_distances(SEXP locASEXP, SEXP locBSEXP) {
@@ -70,6 +82,7 @@ END_RCPP
 
 static const R_CallMethodDef CallEntries[] = {
     {"_stmra_R2_distances", (DL_FUNC) &_stmra_R2_distances, 2},
+    {"_stmra_R3_distances", (DL_FUNC) &_stmra_R3_distances, 2},
     {"_stmra_S2_distances", (DL_FUNC) &_stmra_S2_distances, 2},
     {"_stmra_S2_distances_angular", (DL_FUNC) &_stmra_S2_distances_angular, 2},
     {"_stmra_R1_distances", (DL_FUNC) &_stmra_R1_distances, 2},

@@ -23,6 +23,30 @@ NumericMatrix R2_distances(NumericMatrix locA, NumericMatrix locB) {
   return out;
 }
 
+// Compute a pairwise distance matrix of points in R3
+// [[Rcpp::export]]
+NumericMatrix R3_distances(NumericMatrix locA, NumericMatrix locB) {
+  if (locA.ncol() != locB.ncol()) {
+    // TODO: return error
+  }
+  NumericMatrix out(locA.nrow(), locB.nrow());
+  for (uint32_t ia=0; ia<uint32_t(locA.nrow()); ++ia) {
+    for (uint32_t ib=0; ib<uint32_t(locB.nrow()); ++ib) {
+      double xA = locA(ia,0);
+      double yA = locA(ia,1) ;
+      double zA = locA(ia,2) ;
+      double xB = locA(ib,0);
+      double yB = locA(ib,1) ;
+      double zB = locA(ib,2) ;
+      out(ia, ib) = sqrt((xA-xB)*(xA-xB)+(yA-yB)*(yA-yB)+(zA-zB)*(zA-zB));
+      if (std::isnan(out(ia, ib))) {
+        out(ia, ib) = 0;
+      }
+    }
+  }
+  return out;
+}
+
 // Compute a pairwise distance matrix of points on the surface of a sphere (S2) with radius 6371.0088 km
 // [[Rcpp::export]]
 NumericMatrix S2_distances(NumericMatrix locA, NumericMatrix locB) {

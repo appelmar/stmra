@@ -7,7 +7,7 @@
 duplicate_knots(part)
 }
 \arguments{
-\item{part}{spatiotemporal partition as returned from \code{\link{partition_spacetime}}}
+\item{part}{spatiotemporal partition as returned from \code{\link{stmra_partition}}}
 }
 \value{
 A data.frame with rows corresponding to knots that are duplicate and columns including knot coordinates, a region identifier \code{region} and a unique index \code{num} of the knot within the region

@@ -2,9 +2,13 @@ Package: stmra
 Type: Package
 Title: Spatiotemporal Multiresolution Apprxomations for Gaussian Processes
 Version: 0.1.0
-Author: Marius Appel
+Authors@R: c(person(given = "Marius",
+             family = "Appel",
+             role = c("aut", "cre"),
+             email = "marius.appel@uni-muenster.de",
+             comment = c(ORCID = "0000-0001-5281-3896")))
 Maintainer: Marius Appel <marius.appel@uni-muenster.de>
-Description: Approximation of spatiotemporal Gaussian processes at multiple resolutions (TODO: REFERENCE KAtZFUSS),
+Description: Approximation of spatiotemporal Gaussian processes at multiple resolutions (see Katzfuss (2917) <doi:10.1080/01621459.2015.1123632>),
     where the domain of interest is recursively partitioned into smaller regions and regions
     at the same partitioning level are assumed to be conditionally independent. 
 License: GPL-3
@@ -14,5 +18,14 @@ Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 LinkingTo: 
     Rcpp
-Imports: 
-    Rcpp
+Imports:
+    raster,
+    Rcpp,
+    nloptr,
+    sp,
+    stats
+Suggests:
+    stars,
+    gdalcubes,
+    knitr,
+    rmarkdown

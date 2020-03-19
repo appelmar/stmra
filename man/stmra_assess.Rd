@@ -6,6 +6,14 @@
 \usage{
 stmra_assess(pred, truth)
 }
+\arguments{
+\item{pred}{Predictions as returned from \code{\link{predict.stmra}}}
+
+\item{truth}{True observations as RasterStack / RasterBrick}
+}
+\value{
+List with computed prediction scores and residuals
+}
 \description{
 Compare predictions with true observations
 }

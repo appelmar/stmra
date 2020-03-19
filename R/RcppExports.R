@@ -5,6 +5,10 @@ R2_distances <- function(locA, locB) {
     .Call('_stmra_R2_distances', PACKAGE = 'stmra', locA, locB)
 }
 
+R3_distances <- function(locA, locB) {
+    .Call('_stmra_R3_distances', PACKAGE = 'stmra', locA, locB)
+}
+
 S2_distances <- function(locA, locB) {
     .Call('_stmra_S2_distances', PACKAGE = 'stmra', locA, locB)
 }

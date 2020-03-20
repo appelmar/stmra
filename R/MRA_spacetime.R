@@ -30,12 +30,13 @@ stmra_stack_to_matrix <- function(s) {
 #' @param control list to adjust optimization parameters e.g. maximum number of iterations, or tolerance (see Details)
 #' @param optim.method optimization method (1 = nloptr::bobyqa, 2 = nloptr::lbfgs, 3 = stats::constrOptim), see Details
 #' @param trace logical; print current parameter values and objective function value after each iteration
+#' @param theta vector with known parameter values, if provided, skip parameter estimation
 #' @details
 #' The supported options and ther names in the control argument vary with the used optimization method. Please check the specific method for details.
 #' @return model with estimated covariance function parameters theta
 #' @export
 stmra <- function(partition, cov_fun, data, theta0, lower_bounds = NULL, upper_bounds = NULL, trace = FALSE, control = list(),
-                           optim.method = 1, ineq_constraints = NULL) {
+                           optim.method = 1, ineq_constraints = NULL, theta = NULL) {
 
   stopifnot("stmra_partition" %in% class(partition))
 
@@ -45,100 +46,105 @@ stmra <- function(partition, cov_fun, data, theta0, lower_bounds = NULL, upper_b
   model$cov_fun = cov_fun
 
 
-  if ("RasterBrick" %in% class(data) | "RasterStack" %in% class(data))
-  {
-    z = stmra_stack_to_matrix(data)
-    z = z[which(!is.na(z[,"value"])),] # ignore NA values
-  }
-  else if (is.matrix(data)) {
-    # TODO: check for existing columns x, y, t, value
-    z = data
-    z = z[which(!is.na(z[,"value"])),] # ignore NA values
+  if (!is.null(theta)) {
+    model$theta = theta
   }
   else {
-    stop("Expected Raster or matrix as data argument")
-  }
-  part = .partition_add_data(model$part, z[,c("x","y","t")], z[,"value"])
+    if ("RasterBrick" %in% class(data) | "RasterStack" %in% class(data))
+    {
+      z = stmra_stack_to_matrix(data)
+      z = z[which(!is.na(z[,"value"])),] # ignore NA values
+    }
+    else if (is.matrix(data)) {
+      # TODO: check for existing columns x, y, t, value
+      z = data
+      z = z[which(!is.na(z[,"value"])),] # ignore NA values
+    }
+    else {
+      stop("Expected Raster or matrix as data argument")
+    }
+    part = .partition_add_data(model$part, z[,c("x","y","t")], z[,"value"])
 
-  env_stmra_estimate = environment()
-  model$estimation_log = data.frame()
-  f = function(theta) {
-    val = MRA.fast(theta, cov.fun = model$cov_fun,indices = part$indices,knots = part$knots, data = part$data, J=part$J)
-    if(trace) {
-      cat(paste("(#", nrow(env_stmra_estimate$model$estimation_log) + 1, ") THETA=(", paste(round(theta, digits=4),collapse = ", "), ") -> ", val, "\n", sep=""))
-      env_stmra_estimate$model$estimation_log = rbind(env_stmra_estimate$model$estimation_log, cbind(t(theta), val))
-    }
-    return(val)
-  }
-
-  if (optim.method == 1) {
-    if(!requireNamespace("nloptr", quietly = TRUE)) {
-      stop("package nloptr not found; please install first")
-    }
-
-    if (is.null(lower_bounds)) {
-      lower_bounds = rep(1e-5, length(theta0))
-      warning(paste0("missing lower bounds, using (", paste0(lower_bounds, collapse=","), ")"))
-    }
-    if (is.null(upper_bounds)) {
-      upper_bounds = rep(1e5, length(theta0))
-      warning(paste0("missing upper bounds, using (", paste0(upper_bounds, collapse=","), ")"))
-    }
-    if (!is.null(ineq_constraints)) {
-      warning("ignoring inequality constraints, use optim.method = 3 if needed.")
-    }
-    res = nloptr::bobyqa(theta0, f, lower=lower_bounds, upper=upper_bounds, control=control)
-  }
-  else if (optim.method == 2) {
-    if(!requireNamespace("nloptr", quietly = TRUE)) {
-      stop("package nloptr not found; please install first")
-    }
-    if (is.null(lower_bounds)) {
-      lower_bounds = rep(1e-5, length(theta0))
-      warning(paste0("missing lower bounds, using (", paste0(lower_bounds, collapse=","), ")"))
-    }
-    if (is.null(upper_bounds)) {
-      upper_bounds = rep(1e5, length(theta0))
-      warning(paste0("missing upper bounds, using (", paste0(upper_bounds, collapse=","), ")"))
-    }
-    if (!is.null(ineq_constraints)) {
-      warning("ignoring inequality constraints, use optim.method = 3 if needed.")
-    }
-    res = stats::optim(theta0, f, method = "L-BFGS-B", lower = lower_bounds, upper=upper_bounds, control=control)
-  }
-  else if (optim.method == 3) {
-    np = length(theta0)
-    ui = matrix(nrow=0,ncol=np)
-    ci = numeric(0)
-    if (!is.null(ineq_constraints)) {
-      nc = nrow(ineq_constraints)
-      if (ncol(ineq_constraints) != np + 1) {
-        stop("ineq_constraints must have ncol = npars + 1")
+    env_stmra_estimate = environment()
+    model$estimation_log = data.frame()
+    f = function(theta) {
+      val = MRA.fast(theta, cov.fun = model$cov_fun,indices = part$indices,knots = part$knots, data = part$data, J=part$J)
+      if(trace) {
+        cat(paste("(#", nrow(env_stmra_estimate$model$estimation_log) + 1, ") THETA=(", paste(round(theta, digits=4),collapse = ", "), ") -> ", val, "\n", sep=""))
+        env_stmra_estimate$model$estimation_log = rbind(env_stmra_estimate$model$estimation_log, cbind(t(theta), val))
       }
-      ui = ineq_constraints[,1:np]
-      ci = ineq_constraints[,np + 1]
+      return(val)
     }
 
-    if (!is.null(lower_bounds)) {
-      ui = rbind(ui, diag(1, np)) # lower bound is included
-      ci = c(ci, lower_bounds)
+    if (optim.method == 1) {
+      if(!requireNamespace("nloptr", quietly = TRUE)) {
+        stop("package nloptr not found; please install first")
+      }
+
+      if (is.null(lower_bounds)) {
+        lower_bounds = rep(1e-5, length(theta0))
+        warning(paste0("missing lower bounds, using (", paste0(lower_bounds, collapse=","), ")"))
+      }
+      if (is.null(upper_bounds)) {
+        upper_bounds = rep(1e5, length(theta0))
+        warning(paste0("missing upper bounds, using (", paste0(upper_bounds, collapse=","), ")"))
+      }
+      if (!is.null(ineq_constraints)) {
+        warning("ignoring inequality constraints, use optim.method = 3 if needed.")
+      }
+      res = nloptr::bobyqa(theta0, f, lower=lower_bounds, upper=upper_bounds, control=control)
     }
-    if (!is.null(upper_bounds)) {
-      ui = rbind(ui, diag(-1, np))
-      ci = c(ci, -upper_bounds) # upper bound is NOT included
+    else if (optim.method == 2) {
+      if(!requireNamespace("nloptr", quietly = TRUE)) {
+        stop("package nloptr not found; please install first")
+      }
+      if (is.null(lower_bounds)) {
+        lower_bounds = rep(1e-5, length(theta0))
+        warning(paste0("missing lower bounds, using (", paste0(lower_bounds, collapse=","), ")"))
+      }
+      if (is.null(upper_bounds)) {
+        upper_bounds = rep(1e5, length(theta0))
+        warning(paste0("missing upper bounds, using (", paste0(upper_bounds, collapse=","), ")"))
+      }
+      if (!is.null(ineq_constraints)) {
+        warning("ignoring inequality constraints, use optim.method = 3 if needed.")
+      }
+      res = stats::optim(theta0, f, method = "L-BFGS-B", lower = lower_bounds, upper=upper_bounds, control=control)
     }
-    res = stats::constrOptim(theta0, f, NULL, ui =ui, ci = ci, control=control)
+    else if (optim.method == 3) {
+      np = length(theta0)
+      ui = matrix(nrow=0,ncol=np)
+      ci = numeric(0)
+      if (!is.null(ineq_constraints)) {
+        nc = nrow(ineq_constraints)
+        if (ncol(ineq_constraints) != np + 1) {
+          stop("ineq_constraints must have ncol = npars + 1")
+        }
+        ui = ineq_constraints[,1:np]
+        ci = ineq_constraints[,np + 1]
+      }
+
+      if (!is.null(lower_bounds)) {
+        ui = rbind(ui, diag(1, np)) # lower bound is included
+        ci = c(ci, lower_bounds)
+      }
+      if (!is.null(upper_bounds)) {
+        ui = rbind(ui, diag(-1, np))
+        ci = c(ci, -upper_bounds) # upper bound is NOT included
+      }
+      res = stats::constrOptim(theta0, f, NULL, ui =ui, ci = ci, control=control)
+    }
+    else {
+      stop("Invalid optimization method")
+    }
+    if (nrow( model$estimation_log) > 0) {
+      colnames(model$estimation_log) <- c(paste("theta_", 1:length(theta0), sep=""), "fun")
+    }
+    if (trace) {
+      print(res)
+    }
+    model$theta = res$par
   }
-  else {
-    stop("Invalid optimization method")
-  }
-  if (nrow( model$estimation_log) > 0) {
-    colnames(model$estimation_log) <- c(paste("theta_", 1:length(theta0), sep=""), "fun")
-  }
-  if (trace) {
-    print(res)
-  }
-  model$theta = res$par
   class(model) <- "stmra"
   return(model)
 }

@@ -35,9 +35,9 @@ NumericMatrix R3_distances(NumericMatrix locA, NumericMatrix locB) {
       double xA = locA(ia,0);
       double yA = locA(ia,1) ;
       double zA = locA(ia,2) ;
-      double xB = locA(ib,0);
-      double yB = locA(ib,1) ;
-      double zB = locA(ib,2) ;
+      double xB = locB(ib,0);
+      double yB = locB(ib,1) ;
+      double zB = locB(ib,2) ;
       out(ia, ib) = sqrt((xA-xB)*(xA-xB)+(yA-yB)*(yA-yB)+(zA-zB)*(zA-zB));
       if (std::isnan(out(ia, ib))) {
         out(ia, ib) = 0;

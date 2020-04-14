@@ -1,0 +1,11 @@
+Files: *
+Copyright (c) 2020 Marius Appel
+License: GPL-3
+
+==============================================================
+
+File: R/MRA.R
+Copyright (c) 2016 Matthias Katzfuss
+License: CC BY 4.0
+Origin: https://doi.org/10.6084/m9.figshare.2069686.v2
+Modifications (c) 2020 Marius Appel

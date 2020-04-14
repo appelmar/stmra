@@ -3,10 +3,13 @@ Type: Package
 Title: Spatiotemporal Multiresolution Apprxomations for Gaussian Processes
 Version: 0.1.0
 Authors@R: c(person(given = "Marius",
-             family = "Appel",
-             role = c("aut", "cre"),
-             email = "marius.appel@uni-muenster.de",
-             comment = c(ORCID = "0000-0001-5281-3896")))
+                 family = "Appel",
+                 role = c("aut", "cre"),
+                 email = "marius.appel@uni-muenster.de",
+                 comment = c(ORCID = "0000-0001-5281-3896")),
+             person(given = "Matthias",
+                 family = "Katzfuss",
+                 role = "cph"))
 Maintainer: Marius Appel <marius.appel@uni-muenster.de>
 Description: Approximation of spatiotemporal Gaussian processes at multiple resolutions (see Katzfuss (2917) <doi:10.1080/01621459.2015.1123632>),
     where the domain of interest is recursively partitioned into smaller regions and regions
@@ -14,6 +17,7 @@ Description: Approximation of spatiotemporal Gaussian processes at multiple reso
 License: GPL-3
 Encoding: UTF-8
 LazyData: true
+Copyright: file inst/COPYRIGHTS
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 6.1.1
 LinkingTo: 

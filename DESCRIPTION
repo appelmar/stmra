@@ -11,7 +11,7 @@ Authors@R: c(person(given = "Marius",
                  family = "Katzfuss",
                  role = "cph"))
 Maintainer: Marius Appel <marius.appel@uni-muenster.de>
-Description: Approximation of spatiotemporal Gaussian processes at multiple resolutions (see Katzfuss (2917) <doi:10.1080/01621459.2015.1123632>),
+Description: Approximation of spatiotemporal Gaussian processes at multiple resolutions (see Katzfuss (2017) <doi:10.1080/01621459.2015.1123632>),
     where the domain of interest is recursively partitioned into smaller regions and regions
     at the same partitioning level are assumed to be conditionally independent. 
 License: GPL-3

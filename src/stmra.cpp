@@ -1,6 +1,10 @@
 #include <Rcpp.h>
 using namespace Rcpp;
 
+#ifndef PI
+#define PI 3.14159265358979323846
+#endif
+
 // Compute a pairwise distance matrix of points in R2
 // [[Rcpp::export]]
 NumericMatrix R2_distances(NumericMatrix locA, NumericMatrix locB) {
